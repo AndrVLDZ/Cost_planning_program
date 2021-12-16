@@ -19,9 +19,9 @@ class TermColors:
 
 
 menu_options = {
-            1: 'Таблица расходов',
-            2: 'Изменить данные',
-            3: 'Посчитать расходы',
+            1: 'Таблица трат',
+            2: 'Добавить трату',
+            3: 'Сумма трат',
             4: 'Выход',
             }
 
@@ -42,6 +42,13 @@ def db_check():
             c.execute(query_1)
             print("Подключен к SQLite")
 
+def db_check_rows():
+       with sqlite3.connect('Fare.db') as db:
+            c = db.cursor()
+            c.execute('SELECT COUNT(*)')
+            cnt = c.fetchone()
+            return cnt[0]
+
 def db_insert_default_values():
       with sqlite3.connect('Fare.db') as db:
             c = db.cursor()
@@ -49,7 +56,7 @@ def db_insert_default_values():
             INSERT OR REPLACE INTO costs(id, type, price, number)
             VALUES
             (1,'Метро',41,44),
-            (2,'Маршрутка',40,22)
+            (2,'Маршрутка',45,22)
             '''
             c.execute(query_2)
             db.commit
@@ -69,10 +76,7 @@ def db_row_cnt(table="costs") -> int:
           sqlite_select_query = f"SELECT Count(*) from {table}"
           c.execute(sqlite_select_query)
           cnt = c.fetchone()
-      #     print(cnt[0])
           return cnt[0]
-
-db_row_cnt()
 
 def db_read_data(row: int, column: int, table="costs") -> str:
       with sqlite3.connect('Fare.db') as db:
@@ -86,26 +90,13 @@ def db_read_data(row: int, column: int, table="costs") -> str:
 def db_edit_data():
       pass 
 
-# def db_insert_data(id: int, type: str, price: float, number: int, values: list, table="costs"):
-#       with sqlite3.connect('Fare.db') as db:
-#           c = db.cursor()
-#           for item in values:
-#               c.execute(f'''
-#                     INSERT OR REPLACE INTO {table}({id}, {type}, {price}, {number})
-#                     VALUES
-#                     {item}
-#                     ''') 
-#       #     c.execute(sqlite_insert_query)
-#           db.commit
-#           print(f"{TermColors.GREEN}записей добавлено: {c.rowcount}{TermColors.ENDC}")
-
 def db_insert_data(values: list, table="costs") -> None:
       with sqlite3.connect('Fare.db') as db:
           c = db.cursor()
           row_cnt: int = 0
           for item in values:
               c.execute(f'''
-                    INSERT OR REPLACE INTO {table}(id, type, price, number)
+                    INSERT OR REPLACE INTO {table}(type, price, number)
                     VALUES
                     {item}
                     ''')
@@ -133,9 +124,6 @@ def costs_data_rich():
       rows = db_row_cnt()
       for row in range(rows):
             table.add_row(str(db_read_data(row,1)), str(db_read_data(row,2)), str(db_read_data(row,3)))
-
-            # table.add_row(str(db_read_data(0,1)), str(db_read_data(0,2)), str(db_read_data(0,3)))
-            # table.add_row(str(db_read_data(1,1)), str(db_read_data(1,2)), str(db_read_data(1,3)))
             console = Console()
       console.print(table)
 
@@ -147,7 +135,12 @@ def dialog():
                   menu()
                   dialog() 
             elif option == 2:
-                  print('Здесь будет изменение данных')
+                  print('Введите данные')
+                  type = str(input('Название: '))
+                  price = int(input('Цена: '))
+                  value = int(input('Кол-во: '))
+                  data = [(type,price,value)]
+                  db_insert_data(data)
                   menu()
                   dialog() 
             elif option == 3:
@@ -168,9 +161,9 @@ def dialog():
 
 if __name__ == '__main__':
       db_check()
-      db_insert_default_values()
-      data = [(1,'Метро',41,44), (2,'Маршрутка',40,22)]
-      db_insert_data(data)
+      print(db_check_rows())
+      if db_check_rows == 1: 
+            db_insert_default_values()
       menu()
       dialog()
       
