@@ -4,6 +4,11 @@ import traceback
 # import datetime
 from dataclasses import dataclass
 from typing import Counter
+from rich import console
+
+from rich.console import Console
+from rich.table import Table
+
 
 @dataclass(frozen=True)
 class TermColors:
@@ -42,18 +47,18 @@ def db_check():
             c.execute(query_1)
             print("Подключен к SQLite")
 
-def db_check_rows():
-       with sqlite3.connect('Fare.db') as db:
-            c = db.cursor()
-            c.execute('SELECT COUNT(*)')
-            cnt = c.fetchone()
-            return cnt[0]
+def rows_cnt(table="costs") -> int:
+      with sqlite3.connect('Fare.db') as db:
+          c = db.cursor()
+          c.execute(f"SELECT Count(*) from {table}")
+          cnt = c.fetchone()
+          return cnt[0]
 
-def db_insert_default_values():
+def db_insert_default_values(table="costs") -> None:
       with sqlite3.connect('Fare.db') as db:
             c = db.cursor()
             query_2 = '''
-            INSERT OR REPLACE INTO costs(id, type, price, number)
+            INSERT OR REPLACE INTO {table}(id, type, price, number)
             VALUES
             (1,'Метро',41,44),
             (2,'Маршрутка',45,22)
@@ -62,21 +67,13 @@ def db_insert_default_values():
             db.commit
             print(f"{TermColors.GREEN}+++ {c.rowcount}{TermColors.ENDC}")
 
-def db_print():
+def db_print(table="costs") -> None:
       with sqlite3.connect('Fare.db') as db:
             c = db.cursor()
-            c.execute("SELECT * FROM costs")
+            c.execute("SELECT * FROM {table}")
             records = c.fetchall()
             for row in records:
                   print(row)
-                  
-def db_row_cnt(table="costs") -> int:
-      with sqlite3.connect('Fare.db') as db:
-          c = db.cursor()
-          sqlite_select_query = f"SELECT Count(*) from {table}"
-          c.execute(sqlite_select_query)
-          cnt = c.fetchone()
-          return cnt[0]
 
 def db_read_data(row: int, column: int, table="costs") -> str:
       with sqlite3.connect('Fare.db') as db:
@@ -104,10 +101,10 @@ def db_insert_data(values: list, table="costs") -> None:
           db.commit
           print(f"{TermColors.GREEN}Записей добавлено: {row_cnt}{TermColors.ENDC}")
 
-def calculation():
+def calculation(table="costs") -> int:
       with sqlite3.connect('Fare.db') as db:
             c = db.cursor()
-            c.execute("SELECT price, number FROM costs")
+            c.execute(f"SELECT price, number FROM {table}")
             records = c.fetchall()
             res = 0
             for row in records:
@@ -115,16 +112,15 @@ def calculation():
             return res
 
 def costs_data_rich():
-      from rich.console import Console
-      from rich.table import Table
       table = Table(title='Таблица расходов')
       table.add_column('Тип')
       table.add_column('Цена')
       table.add_column('Кол-во')
-      rows = db_row_cnt()
+      rows = rows_cnt()
       for row in range(rows):
             table.add_row(str(db_read_data(row,1)), str(db_read_data(row,2)), str(db_read_data(row,3)))
             console = Console()
+      table.add_row("Итого", str(rows_cnt()), str(calculation()), style="bold red")
       console.print(table)
 
 def dialog():
@@ -144,6 +140,8 @@ def dialog():
                   menu()
                   dialog() 
             elif option == 3:
+                  console = Console()
+                  console.print("Расходы: ", str(calculation()), style="bold red")
                   print('Расходы: ' + str(calculation()))
                   menu()
                   dialog() 
@@ -161,8 +159,8 @@ def dialog():
 
 if __name__ == '__main__':
       db_check()
-      print(db_check_rows())
-      if db_check_rows == 1: 
+      print(rows_cnt())
+      if rows_cnt == 0: 
             db_insert_default_values()
       menu()
       dialog()
