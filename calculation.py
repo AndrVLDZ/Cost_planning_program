@@ -10,19 +10,19 @@ from rich.console import Console
 from rich.table import Table
 
 
-@dataclass(frozen=True)
-class TermColors:
-    HEADER: str    = '\033[95m'
-    BLUE: str      = '\033[94m'
-    CYAN: str      = '\033[96m'
-    GREEN: str     = '\033[92m'
-    WARNING: str   = '\033[93m'
-    FAIL: str      = '\033[91m'
-    ENDC: str      = '\033[0m'
-    BOLD: str      = '\033[1m'
-    UNDERLINE: str = '\033[4m'
+# @dataclass(frozen=True)
+# class TermColors:
+#     HEADER: str    = '\033[95m'
+#     BLUE: str      = '\033[94m'
+#     CYAN: str      = '\033[96m'
+#     GREEN: str     = '\033[92m'
+#     WARNING: str   = '\033[93m'
+#     FAIL: str      = '\033[91m'
+#     ENDC: str      = '\033[0m'
+#     BOLD: str      = '\033[1m'
+#     UNDERLINE: str = '\033[4m'
 
-
+console = Console()
 menu_options = {
             1: 'Таблица трат',
             2: 'Добавить трату',
@@ -87,6 +87,9 @@ def db_read_data(row: int, column: int, table="costs") -> str:
 def db_edit_data():
       pass 
 
+def db_remove_data():
+      pass
+
 def db_insert_data(values: list, table="costs") -> None:
       with sqlite3.connect('Fare.db') as db:
           c = db.cursor()
@@ -119,7 +122,6 @@ def costs_data_rich():
       rows = rows_cnt()
       for row in range(rows):
             table.add_row(str(db_read_data(row,1)), str(db_read_data(row,2)), str(db_read_data(row,3)))
-            console = Console()
       table.add_row("Итого", str(rows_cnt()), str(calculation()), style="bold red")
       console.print(table)
 
@@ -166,7 +168,7 @@ if __name__ == '__main__':
       dialog()
       
 else:
-    print(f'Imported module with name {TermColors.GREEN}{__name__}{TermColors.ENDC}')
+    console.print(f'Imported module with name {__name__}', style="bold green")
 
 
 
