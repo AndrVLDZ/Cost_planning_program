@@ -65,7 +65,7 @@ def db_insert_default_values(table="costs") -> None:
             '''
             c.execute(query_2)
             db.commit
-            print(f"{TermColors.GREEN}+++ {c.rowcount}{TermColors.ENDC}")
+            print(f"+++ {c.rowcount}", style="bold green")
 
 def db_print(table="costs") -> None:
       with sqlite3.connect('Fare.db') as db:
@@ -102,7 +102,7 @@ def db_insert_data(values: list, table="costs") -> None:
                     ''')
               row_cnt += 1 
           db.commit
-          print(f"{TermColors.GREEN}Записей добавлено: {row_cnt}{TermColors.ENDC}")
+          console.print(f'Записей добавлено: {row_cnt}', style="bold green")
 
 def calculation(table="costs") -> int:
       with sqlite3.connect('Fare.db') as db:
@@ -161,7 +161,6 @@ def dialog():
 
 if __name__ == '__main__':
       db_check()
-      print(rows_cnt())
       if rows_cnt == 0: 
             db_insert_default_values()
       menu()
