@@ -122,7 +122,7 @@ def costs_data_rich():
       rows = rows_cnt()
       for row in range(rows):
             table.add_row(str(db_read_data(row,1)), str(db_read_data(row,2)), str(db_read_data(row,3)))
-      table.add_row("Итого", str(rows_cnt()), str(calculation()), style="bold red")
+      table.add_row("Итого", str(calculation()), str(rows_cnt()), style="bold red")
       console.print(table)
 
 def dialog():
