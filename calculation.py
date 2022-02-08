@@ -2,81 +2,94 @@ import sqlite3
 from sqlite3 import Error
 import traceback
 # import datetime
+
 from dataclasses import dataclass
-from typing import Counter
-from rich import console
+
+from types import ModuleType
+from typing import Any
+
+from rich import pretty
+pretty.install()
 
 from rich.console import Console
 from rich.table import Table
 
+@dataclass(frozen=True)
+class data:
+    db: str = 'Fare.db'
 
-# @dataclass(frozen=True)
-# class TermColors:
-#     HEADER: str    = '\033[95m'
-#     BLUE: str      = '\033[94m'
-#     CYAN: str      = '\033[96m'
-#     GREEN: str     = '\033[92m'
-#     WARNING: str   = '\033[93m'
-#     FAIL: str      = '\033[91m'
-#     ENDC: str      = '\033[0m'
-#     BOLD: str      = '\033[1m'
-#     UNDERLINE: str = '\033[4m'
+    menu_1 = {
+                1: 'Открыть таблицу',
+                2: 'Добавить таблицу',
+                3: 'Удалить таблицу',
+                5: 'Выход',
+                }
+                
+    menu_2 = {
+                1: 'Открыть',
+                2: 'Назад',
+                3: 'Изменить трату',
+                4: 'Удалить трату',
+                5: 'Выход',
+                }
 
-console = Console()
-menu_options = {
-            1: 'Таблица трат',
-            2: 'Добавить трату',
-            3: 'Сумма трат',
-            4: 'Выход',
-            }
+    menu_options = {
+                1: 'Показать таблицу',
+                2: 'Добавить',
+                3: 'Изменить',
+                4: 'Удалить',
+                5: 'Выход',
+                }
+console: Any = Console()
 
-def menu():
-    for key in menu_options.keys():
-        print (key, '--', menu_options[key] )
 
-def db_check():
-      with sqlite3.connect('Fare.db') as db:
+def menu() -> str:
+    for key in data.menu_options.keys():
+        console.print(key, '--', data.menu_options[key] )
+
+def create_table(table: str) -> None:
+      with sqlite3.connect(data.db) as db:
             c = db.cursor()   
-            query_1 = ''' 
-            CREATE TABLE IF NOT EXISTS costs (
+            query_1 = f''' 
+            CREATE TABLE IF NOT EXISTS {table} (
                   id INTEGER PRIMARY KEY,
                   type TEXT,
                   price INTEGER,
                   number INTEGER
                   ); '''
             c.execute(query_1)
-            print("Подключен к SQLite")
+            console.print("Подключен к SQLite")
 
-def rows_cnt(table="costs") -> int:
-      with sqlite3.connect('Fare.db') as db:
+def rows_cnt(table: str) -> int:
+      with sqlite3.connect(data.db) as db:
           c = db.cursor()
           c.execute(f"SELECT Count(*) from {table}")
           cnt = c.fetchone()
           return cnt[0]
 
-def db_insert_default_values(table="costs") -> None:
-      with sqlite3.connect('Fare.db') as db:
+# def db_insert_default_values(table: str) -> None:
+      with sqlite3.connect(data.db) as db:
             c = db.cursor()
-            query_2 = '''
+            query = f'''
             INSERT OR REPLACE INTO {table}(id, type, price, number)
             VALUES
             (1,'Метро',41,44),
             (2,'Маршрутка',45,22)
             '''
-            c.execute(query_2)
+            c.execute(query)
             db.commit
-            print(f"+++ {c.rowcount}", style="bold green")
+            print(f"+++ {rows_cnt('costs')}", style="bold green")
 
-def db_print(table="costs") -> None:
-      with sqlite3.connect('Fare.db') as db:
+# def db_print(table: str) -> None:
+      with sqlite3.connect(data.db) as db:
             c = db.cursor()
             c.execute("SELECT * FROM {table}")
             records = c.fetchall()
             for row in records:
                   print(row)
 
-def db_read_data(row: int, column: int, table="costs") -> str:
-      with sqlite3.connect('Fare.db') as db:
+def db_read_data(table: str, row: int, column: int) -> str:
+      with sqlite3.connect(data.db) as db:
           c = db.cursor()
           sqlite_select_query = f"SELECT * from {table}"
           c.execute(sqlite_select_query)
@@ -91,7 +104,7 @@ def db_remove_data():
       pass
 
 def db_insert_data(values: list, table="costs") -> None:
-      with sqlite3.connect('Fare.db') as db:
+      with sqlite3.connect(data.db) as db:
           c = db.cursor()
           row_cnt: int = 0
           for item in values:
@@ -102,10 +115,11 @@ def db_insert_data(values: list, table="costs") -> None:
                     ''')
               row_cnt += 1 
           db.commit
+          global console
           console.print(f'Записей добавлено: {row_cnt}', style="bold green")
 
 def calculation(table="costs") -> int:
-      with sqlite3.connect('Fare.db') as db:
+      with sqlite3.connect(data.db) as db:
             c = db.cursor()
             c.execute(f"SELECT price, number FROM {table}")
             records = c.fetchall()
@@ -114,67 +128,69 @@ def calculation(table="costs") -> int:
                   res += row[0] * row[1]
             return res
 
-def costs_data_rich():
-      table = Table(title='Таблица расходов')
-      table.add_column('Тип')
-      table.add_column('Цена')
-      table.add_column('Кол-во')
-      rows = rows_cnt()
+def table_print_rich(table_name: str, title: str, column_1, column_2, column_3):
+      table = Table(title=title)
+      table.add_column(column_1)
+      table.add_column(column_2)
+      table.add_column(column_3)
+      rows = rows_cnt(table_name)
       for row in range(rows):
-            table.add_row(str(db_read_data(row,1)), str(db_read_data(row,2)), str(db_read_data(row,3)))
-      table.add_row("Итого", str(calculation()), str(rows_cnt()), style="bold red")
+            table.add_row(str(db_read_data('costs',row,1)), str(db_read_data('costs',row,2)), str(db_read_data('costs',row,3)))
+      table.add_row("Итого", str(calculation()), str(rows_cnt(table_name)), style="bold red")
+      global console
       console.print(table)
+
 
 def dialog():
       try:
+            global console
+            #console.print('Выберите таблицу:')
+            #список таблиц
+
+
             option = int(input('Выберите пункт меню: '))
             if option == 1:
-                  costs_data_rich()
+                  console.print(rows_cnt('costs'), style="bold blue")
+                  if rows_cnt('costs') == 0: 
+                        console.print('В таблице нет записей', style="bold red")
+                  else:
+                        table_print_rich('costs', 'Таблица расходов', 'Тип', 'Цена', 'Кол-во')
                   menu()
                   dialog() 
             elif option == 2:
-                  print('Введите данные')
+                  console.print('Введите данные')
                   type = str(input('Название: '))
                   price = int(input('Цена: '))
                   value = int(input('Кол-во: '))
-                  data = [(type,price,value)]
-                  db_insert_data(data)
+                  db_insert_data([(type,price,value)])
                   menu()
                   dialog() 
             elif option == 3:
                   console = Console()
                   console.print("Расходы: ", str(calculation()), style="bold red")
-                  print('Расходы: ' + str(calculation()))
+                  console.print('Расходы: ' + str(calculation()))
                   menu()
                   dialog() 
             elif option == 4:
-                  print('Работа программы завершена')
+                  console.print('Здесь будет удаление')
+                  return
+            elif option == 5:
+                  console.print('Работа программы завершена')
                   return
             else:
-                  print('Такого пункта нет, введите целое число от 1 до 4')
+                  console.print('Такого пункта нет, введите целое число от 1 до 4')
                   menu()
                   dialog() 
       except:
-            print('Ошибка ввода:\n', traceback.format_exc())
+            console.print('Ошибка ввода:\n', traceback.format_exc())
             menu()
             dialog()
 
 if __name__ == '__main__':
-      db_check()
-      if rows_cnt == 0: 
-            db_insert_default_values()
+      create_table("costs")
       menu()
       dialog()
       
 else:
     console.print(f'Imported module with name {__name__}', style="bold green")
 
-
-
-
-
-# def get_timestamp(y,m,d):
-#       return datetime.datetime.timestamp(datetime.datetime(y,m,d))
-
-# def get_date(tmstmp):
-#       return datetime.datetime.fromtimestamp(tmstmp).date()
