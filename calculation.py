@@ -40,40 +40,9 @@ class data:
                 }
 console: Any = Console()
 
-
 def menu() -> str:
     for key in data.menu_options.keys():
         console.print(key, '--', data.menu_options[key] )
-
-def db_read_data(table: str, row: int, column: int) -> str:
-      with sqlite3.connect(data.db) as db:
-          c = db.cursor()
-          sqlite_select_query = f"SELECT * from {table}"
-          c.execute(sqlite_select_query)
-          records = c.fetchall()
-          value = records[row][column]
-          return value
-
-def db_edit_data():
-      pass 
-
-def db_remove_data():
-      pass
-
-def db_insert_data(values: list, table="Tab_1") -> None:
-      with sqlite3.connect(data.db) as db:
-          c = db.cursor()
-          row_cnt: int = 0
-          for item in values:
-              c.execute(f'''
-                    INSERT OR REPLACE INTO {table}(type, price, value)
-                    VALUES
-                    {item}
-                    ''')
-              row_cnt += 1 
-          db.commit
-          global console
-          console.print(f'Записей добавлено: {row_cnt}', style="bold green")
 
 def calculation(table="Tab_1") -> int:
       with sqlite3.connect(data.db) as db:
@@ -92,7 +61,7 @@ def table_print_rich(table: str, title: str, column_1: str, column_2: str, colum
       rtable.add_column(column_3)
       rows = sq.rows_cnt(table)
       for row in range(rows):
-            rtable.add_row(str(db_read_data(table,row,1)), str(db_read_data(table,row,2)), str(db_read_data(table,row,3)), style="yellow")
+            rtable.add_row(str(sq.read_data(table,row,1)), str(sq.read_data(table,row,2)), str(sq.read_data(table,row,3)), style="yellow")
       rtable.add_row("Итого", str(calculation()), str(sq.rows_cnt(table)), style="bold blue")
       global console
       console.print(rtable)
@@ -117,7 +86,7 @@ def dialog():
                   type = str(input('Название: '))
                   price = int(input('Цена: '))
                   value = int(input('Кол-во: '))
-                  console.print("Записей добавлено: ", sq.db_insert_data([(type,price,value)], 'Tab_1', 'type, price, value'), style="bold green")
+                  console.print("Записей добавлено: ", sq.insert_data([(type,price,value)], 'Tab_1', 'type, price, value'), style="bold green")
                   menu()
                   dialog() 
             elif option == 3:
@@ -142,7 +111,7 @@ def dialog():
             dialog()
 
 if __name__ == '__main__':
-      sq.add_db("Fare.db")
+      sq.db("Fare.db")
       rows = ('id INTEGER PRIMARY KEY, type TEXT, price INTEGER, value INTEGER')
       sq.create_table('Tab_1', rows)
       menu()
