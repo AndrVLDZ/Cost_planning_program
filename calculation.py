@@ -1,23 +1,21 @@
+
+import SQLite_tools as sq
+
 import sqlite3
 from sqlite3 import Error
-import traceback
-# import datetime
 
 from dataclasses import dataclass
-
-from types import ModuleType
 from typing import Any
-
-from rich import pretty
-pretty.install()
 
 from rich.console import Console
 from rich.table import Table
 
+import traceback
+
+
 @dataclass(frozen=True)
 class data:
     db: str = 'Fare.db'
-
     menu_1 = {
                 1: 'Открыть таблицу',
                 2: 'Добавить таблицу',
@@ -47,47 +45,6 @@ def menu() -> str:
     for key in data.menu_options.keys():
         console.print(key, '--', data.menu_options[key] )
 
-def create_table(table: str) -> None:
-      with sqlite3.connect(data.db) as db:
-            c = db.cursor()   
-            query_1 = f''' 
-            CREATE TABLE IF NOT EXISTS {table} (
-                  id INTEGER PRIMARY KEY,
-                  type TEXT,
-                  price INTEGER,
-                  number INTEGER
-                  ); '''
-            c.execute(query_1)
-            console.print("Подключен к SQLite")
-
-def rows_cnt(table: str) -> int:
-      with sqlite3.connect(data.db) as db:
-          c = db.cursor()
-          c.execute(f"SELECT Count(*) from {table}")
-          cnt = c.fetchone()
-          return cnt[0]
-
-# def db_insert_default_values(table: str) -> None:
-      with sqlite3.connect(data.db) as db:
-            c = db.cursor()
-            query = f'''
-            INSERT OR REPLACE INTO {table}(id, type, price, number)
-            VALUES
-            (1,'Метро',41,44),
-            (2,'Маршрутка',45,22)
-            '''
-            c.execute(query)
-            db.commit
-            print(f"+++ {rows_cnt('costs')}", style="bold green")
-
-# def db_print(table: str) -> None:
-      with sqlite3.connect(data.db) as db:
-            c = db.cursor()
-            c.execute("SELECT * FROM {table}")
-            records = c.fetchall()
-            for row in records:
-                  print(row)
-
 def db_read_data(table: str, row: int, column: int) -> str:
       with sqlite3.connect(data.db) as db:
           c = db.cursor()
@@ -103,13 +60,13 @@ def db_edit_data():
 def db_remove_data():
       pass
 
-def db_insert_data(values: list, table="costs") -> None:
+def db_insert_data(values: list, table="Tab_1") -> None:
       with sqlite3.connect(data.db) as db:
           c = db.cursor()
           row_cnt: int = 0
           for item in values:
               c.execute(f'''
-                    INSERT OR REPLACE INTO {table}(type, price, number)
+                    INSERT OR REPLACE INTO {table}(type, price, value)
                     VALUES
                     {item}
                     ''')
@@ -118,43 +75,41 @@ def db_insert_data(values: list, table="costs") -> None:
           global console
           console.print(f'Записей добавлено: {row_cnt}', style="bold green")
 
-def calculation(table="costs") -> int:
+def calculation(table="Tab_1") -> int:
       with sqlite3.connect(data.db) as db:
             c = db.cursor()
-            c.execute(f"SELECT price, number FROM {table}")
+            c.execute(f"SELECT price, value FROM {table}")
             records = c.fetchall()
             res = 0
             for row in records:
                   res += row[0] * row[1]
             return res
 
-def table_print_rich(table_name: str, title: str, column_1, column_2, column_3):
-      table = Table(title=title)
-      table.add_column(column_1)
-      table.add_column(column_2)
-      table.add_column(column_3)
-      rows = rows_cnt(table_name)
+def table_print_rich(table: str, title: str, column_1: str, column_2: str, column_3: str):
+      rtable = Table(title=title, show_header=True, header_style="bold blue")
+      rtable.add_column(column_1)
+      rtable.add_column(column_2)
+      rtable.add_column(column_3)
+      rows = sq.rows_cnt(table)
       for row in range(rows):
-            table.add_row(str(db_read_data('costs',row,1)), str(db_read_data('costs',row,2)), str(db_read_data('costs',row,3)))
-      table.add_row("Итого", str(calculation()), str(rows_cnt(table_name)), style="bold red")
+            rtable.add_row(str(db_read_data(table,row,1)), str(db_read_data(table,row,2)), str(db_read_data(table,row,3)), style="yellow")
+      rtable.add_row("Итого", str(calculation()), str(sq.rows_cnt(table)), style="bold blue")
       global console
-      console.print(table)
+      console.print(rtable)
 
 
 def dialog():
       try:
             global console
-            #console.print('Выберите таблицу:')
-            #список таблиц
-
-
             option = int(input('Выберите пункт меню: '))
+            table = 'Tab_1'
             if option == 1:
-                  console.print(rows_cnt('costs'), style="bold blue")
-                  if rows_cnt('costs') == 0: 
+                  cnt = sq.rows_cnt(table)
+                  if cnt == 0: 
                         console.print('В таблице нет записей', style="bold red")
+                        table_print_rich(table, 'Таблица доходов и расходов', 'Тип', 'Цена', 'Кол-во')
                   else:
-                        table_print_rich('costs', 'Таблица расходов', 'Тип', 'Цена', 'Кол-во')
+                        table_print_rich(table, 'Таблица доходов и расходов', 'Тип', 'Цена', 'Кол-во')
                   menu()
                   dialog() 
             elif option == 2:
@@ -162,7 +117,7 @@ def dialog():
                   type = str(input('Название: '))
                   price = int(input('Цена: '))
                   value = int(input('Кол-во: '))
-                  db_insert_data([(type,price,value)])
+                  console.print("Записей добавлено: ", sq.db_insert_data([(type,price,value)], 'Tab_1', 'type, price, value'), style="bold green")
                   menu()
                   dialog() 
             elif option == 3:
@@ -187,7 +142,9 @@ def dialog():
             dialog()
 
 if __name__ == '__main__':
-      create_table("costs")
+      sq.add_db("Fare.db")
+      rows = ('id INTEGER PRIMARY KEY, type TEXT, price INTEGER, value INTEGER')
+      sq.create_table('Tab_1', rows)
       menu()
       dialog()
       
