@@ -1,6 +1,8 @@
 #SQLite tools for python by AndrVLDZ
 import sqlite3
+from dataclasses import dataclass
 
+@dataclass
 class data:
       db: str = None
 
