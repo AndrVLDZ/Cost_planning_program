@@ -60,6 +60,19 @@ def remove_rows_by_names(table: str, column: str, search_params: list):
           db.commit
           return row_cnt
 
+def remove_rows_by_id(table: str, id_list: list):
+      with sqlite3.connect(data.db) as db:
+          c = db.cursor()
+          row_cnt: int = 0
+          for id in id_list:
+              c.execute(f'''
+                  DELETE FROM {table}
+                  WHERE ID = {id};
+                        ''')
+              row_cnt += 1 
+          db.commit
+          return row_cnt
+
 def edit_data():
       pass 
 

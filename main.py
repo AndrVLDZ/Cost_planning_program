@@ -75,7 +75,7 @@ def dialog():
       try:
             global console
             option = int(input('Выберите пункт меню: '))
-            table = 'Tab_1'
+            table = '1231'
             if option == 1:
                   cnt = sq.rows_cnt(table)
                   if cnt == 0: 
@@ -144,6 +144,7 @@ if __name__ == '__main__':
       sq.db('Fare.db')
       rows = ('id INTEGER PRIMARY KEY, type TEXT, price INTEGER, value INTEGER')
       sq.create_table('Tab_1', rows)
+      # sq.remove_rows_by_id('Tab_1', [1])
       menu()
       dialog()
 
