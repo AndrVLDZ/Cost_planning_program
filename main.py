@@ -75,7 +75,7 @@ def dialog():
       try:
             global console
             option = int(input('Выберите пункт меню: '))
-            table = '1231'
+            table = 'Tab_1'
             if option == 1:
                   cnt = sq.rows_cnt(table)
                   if cnt == 0: 
