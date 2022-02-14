@@ -1,3 +1,5 @@
+import profile
+from tkinter import N
 import SQLite_tools as sq
 
 import sqlite3
@@ -40,9 +42,11 @@ class data:
 
 console: Any = Console()
 
-def menu() -> str:
+def menu() -> None:
+    print('\n')
     for key in data.menu_options.keys():
-        console.print(key, '--', data.menu_options[key] )
+        console.print(key, '--', data.menu_options[key])
+    print('\n')
 
 def calculation(table) -> int:
       with sqlite3.connect(data.db) as db:
@@ -55,14 +59,14 @@ def calculation(table) -> int:
             return res
 
 def table_print_rich(table: str, title: str, column_1: str, column_2: str, column_3: str):
-      rtable = Table(title=title, show_header=True, header_style="bold blue")
+      rtable = Table(title=title, show_header=True, header_style='bold blue')
       rtable.add_column(column_1)
       rtable.add_column(column_2)
       rtable.add_column(column_3)
       rows = sq.rows_cnt(table)
       for row in range(rows):
-            rtable.add_row(str(sq.read_data(table,row,1)), str(sq.read_data(table,row,2)), str(sq.read_data(table,row,3)), style="yellow")
-      rtable.add_row("Итого", str(calculation(table)), str(sq.rows_cnt(table)), style="bold blue")
+            rtable.add_row(str(sq.read_data(table,row,1)), str(sq.read_data(table,row,2)), str(sq.read_data(table,row,3)), style='yellow')
+      rtable.add_row('Итого', str(calculation(table)), str(sq.rows_cnt(table)), style='bold blue')
       global console
       console.print(rtable)
 
@@ -75,23 +79,32 @@ def dialog():
             if option == 1:
                   cnt = sq.rows_cnt(table)
                   if cnt == 0: 
-                        console.print('В таблице нет записей', style="bold red")
+                        console.print('В таблице нет записей', style='bold red')
                         table_print_rich(table, 'Таблица доходов и расходов', 'Тип', 'Цена', 'Кол-во')
                   else:
                         table_print_rich(table, 'Таблица доходов и расходов', 'Тип', 'Цена', 'Кол-во')
                   menu()
                   dialog() 
             elif option == 2:
-                  console.print('Введите данные')
-                  type = str(input('Название: '))
-                  price = int(input('Цена: '))
-                  value = int(input('Кол-во: '))
-                  console.print("Записей добавлено: ", sq.insert_data([(type,price,value)], 'Tab_1', 'type, price, value'), style="bold green")
+                  console.print('\nВведите данные')
+                  answ: int = ''
+                  row_data = []
+                  while answ != 0:      
+                        type = str(input('Название: '))
+                        price = int(input('Цена: '))
+                        value = int(input('Кол-во: '))
+                        row_data.append((type,price,value))
+                        console.print('Запись добавлена', style='bold green')
+                        try:
+                              answ = int(input('\nЗакончить ввод - 0 \nПродолжить - 1\n -> '))
+                        except:
+                              console.print('Введите 0 или 1:\n', traceback.format_exc())
+                  console.print("\nВсего записей добавлено: ", sq.insert_data(row_data, 'Tab_1', 'type, price, value'), style="bold green")
                   menu()
                   dialog() 
             elif option == 3:
                   console = Console()
-                  console.print("Расходы: ", str(calculation(table)), style="bold red")
+                  console.print("Расходы: ", str(calculation(table)), style='bold red')
                   console.print('Расходы: ' + str(calculation(table)))
                   menu()
                   dialog() 
@@ -106,12 +119,12 @@ def dialog():
                   menu()
                   dialog() 
       except:
-            console.print('Ошибка ввода:\n', traceback.format_exc())
+            console.print('Введите цифру:\n', traceback.format_exc())
             menu()
             dialog()
 
 if __name__ == '__main__':
-      sq.db("Fare.db")
+      sq.db('Fare.db')
       rows = ('id INTEGER PRIMARY KEY, type TEXT, price INTEGER, value INTEGER')
       sq.create_table('Tab_1', rows)
       menu()

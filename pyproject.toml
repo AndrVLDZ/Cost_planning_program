@@ -3,13 +3,14 @@ name = "cost_planning_program"
 version = "0.1.0"
 description = "Cost planning program"
 authors = ["Vladislav Andronov <68904879+AndrVLDZ@users.noreply.github.com>"]
-license = "MIT"
+license = "Apache License 2.0"
 
 [tool.poetry.dependencies]
 python = "^3.9.6"
 rich = "^11.2.0"
 
 [tool.poetry.dev-dependencies]
+mypy = "^0.931"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

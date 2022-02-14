@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass
 class data:
-      db: str = None
+      db: str = ""
 
 def db(input_db: str) -> None:
       data.db = input_db
@@ -14,6 +14,12 @@ def create_table(table: str, rows: str) -> None:
             query = f'CREATE TABLE IF NOT EXISTS {table} ({rows});'
             db.cursor().execute(query)
 
+def remove_table():
+      pass
+
+def rename_table():
+      pass
+
 def db_print(table: str) -> None:
       with sqlite3.connect(data.db) as db:
             c = db.cursor()
@@ -21,12 +27,6 @@ def db_print(table: str) -> None:
             records = c.fetchall()
             for row in records:
                   print(row)
-
-def remove_table():
-      pass
-
-def rename_table():
-      pass
 
 def rows_cnt(table: str) -> int:
       with sqlite3.connect(data.db) as db:
@@ -41,8 +41,7 @@ def insert_data(values: list, table: str, rows: str) -> int:
           for item in values:
               c.execute(f'''
                     INSERT OR REPLACE INTO {table}({rows})
-                    VALUES
-                    {item}
+                    VALUES {item}
                     ''')
               row_cnt += 1 
           db.commit
