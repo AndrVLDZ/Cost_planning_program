@@ -99,7 +99,7 @@ def dialog():
                               answ = int(input('\nЗакончить ввод - 0 \nПродолжить - 1\n -> '))
                         except:
                               console.print('Введите 0 или 1:\n', traceback.format_exc())
-                  console.print("\nВсего записей добавлено: ", sq.insert_data(row_data, 'Tab_1', 'type, price, value'), style="bold green")
+                  console.print("\nВсего записей добавлено: ", sq.insert_data(table, row_data, 'type, price, value'), style="bold green")
                   menu()
                   dialog() 
             elif option == 3:
@@ -109,7 +109,24 @@ def dialog():
                   menu()
                   dialog() 
             elif option == 4:
-                  console.print('Здесь будет удаление')
+                  answ: int = ''
+                  row_data = []
+                  while answ != 0:      
+                        type = str(input('\nВведите тип для удаления: '))
+                        row_data.append(type)
+                        console.print('Запись добавлена на удаление', style='red')
+                        try:
+                              answ = int(input('\nЗакончить ввод - 0 \nПродолжить - 1\n -> '))
+                        except:
+                              console.print('Введите 0 или 1:\n', traceback.format_exc())
+                  try:
+                        print(row_data)
+                        console.print("\nВсего записей удалено: ", sq.remove_rows_by_names(table, 'type', row_data), style="bold red")
+                  except:
+                        console.print('Ошибка в одном из типов:\n', traceback.format_exc())
+                  
+                  menu()
+                  dialog() 
                   return
             elif option == 5:
                   console.print('Работа программы завершена')

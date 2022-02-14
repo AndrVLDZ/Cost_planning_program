@@ -34,7 +34,7 @@ def rows_cnt(table: str) -> int:
           c.execute(f'SELECT Count(*) from {table}')
           return c.fetchone()[0]
 
-def insert_data(values: list, table: str, rows: str) -> int:
+def insert_data(table: str, values: list, rows: str) -> int:
       with sqlite3.connect(data.db) as db:
           c = db.cursor()
           row_cnt: int = 0
@@ -47,6 +47,22 @@ def insert_data(values: list, table: str, rows: str) -> int:
           db.commit
           return row_cnt
 
+def remove_rows_by_names(table: str, column: str, search_params: list):
+      with sqlite3.connect(data.db) as db:
+          c = db.cursor()
+          row_cnt: int = 0
+          for param in search_params:
+              c.execute(f'''
+                  DELETE FROM {table}
+                  WHERE {column} = '{param}';
+                        ''')
+              row_cnt += 1 
+          db.commit
+          return row_cnt
+
+def edit_data():
+      pass 
+
 def read_data(table: str, row: int, column: int) -> str:
       with sqlite3.connect(data.db) as db:
           c = db.cursor()
@@ -55,9 +71,3 @@ def read_data(table: str, row: int, column: int) -> str:
           records = c.fetchall()
           value = records[row][column]
           return value
-
-def edit_data():
-      pass 
-
-def remove_data():
-      pass
